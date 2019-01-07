@@ -14,6 +14,7 @@ module dmd.traits;
 
 import core.stdc.stdio;
 import core.stdc.string;
+import core.stdc.stdlib;
 
 import dmd.aggregate;
 import dmd.arraytypes;
@@ -150,7 +151,8 @@ shared static this()
         "getVirtualIndex",
         "getPointerBitmap",
         "isZeroInit",
-        "getTargetInfo"
+        "getTargetInfo",
+        "getLocation"
     ];
 
     traitsStringTable._init(48);
@@ -1784,6 +1786,26 @@ Lnext:
             return new ErrorExp();
         }
         return r.expressionSemantic(sc);
+    }
+    if (e.ident == Id.getLocation)
+    {
+        if (dim != 1)
+            return dimError(1);
+
+        auto s = getDsymbolWithoutExpCtx((*e.args)[0]);
+        if (!s)
+        {
+            e.error("first argument to `getLocation` must be a symbol");
+            return new ErrorExp();
+        }
+        
+        auto se = new StringExp(e.loc, cast(char *)s.loc.filename);
+        auto ie = new IntegerExp(e.loc, s.loc.linnum, Type.tsize_t);
+        auto exps = new Expressions();
+        exps.push(se);
+        exps.push(ie);
+        auto te = new TupleExp(e.loc, exps);
+        return te.expressionSemantic(sc);
     }
 
     extern (D) void* trait_search_fp(const(char)* seed, ref int cost)

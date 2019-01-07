@@ -1,0 +1,1 @@
+Added new trait getLocation. This will get the source location of a symbol as __traits(getLocation, T), and returns a tuple(file, line) with file being a string and line a size_t.
